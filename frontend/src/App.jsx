@@ -21,7 +21,7 @@ import SalesHistory from './pages/admin/SalesHistory';
 import ManageProjects from './pages/admin/ManageProjects';
 import ManageMaterials from './pages/admin/ManageMaterials';
 import ManageDebts from './pages/admin/ManageDebts';
-import AdminSetup from './pages/admin/AdminSetup';
+
 
 // Layout
 import PublicLayout from './components/layout/PublicLayout';
@@ -55,7 +55,7 @@ function App() {
 
             {/* Admin Auth */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/setup" element={<AdminSetup />} />
+
 
             {/* Admin Protected Routes */}
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
