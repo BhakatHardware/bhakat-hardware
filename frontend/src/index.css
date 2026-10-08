@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ===================== DESIGN TOKENS ===================== */
+:root {
+  /* Brand Colors - Lime & White */
+  --color-lime: #a3e635;
+  --color-lime-light: #bef264;
+  --color-lime-dark: #65a30d;
+  --color-white: #ffffff;
+  --color-off-white: #fafafa;
+  --color-surface: #f8fafc;
+  --color-dark: #0f172a;
+  --color-dark-muted: #334155;
+  --color-ash: #64748b;
+  --color-border: #e2e8f0;
+  
+  /* Font */
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+
+  /* Transitions */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===================== RESET ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+*{
+  user-select: none;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-off-white);
+  color: var(--color-dark);
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-off-white); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ash); }
+
+/* ===================== TYPOGRAPHY ===================== */
+.font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+/* ===================== HIGHLIGHT TEXT ===================== */
+.text-lime-highlight {
+  color: var(--color-lime-dark);
+}
+
+.text-gold-gradient {
+  /* Renamed functionally, but keeping class name to avoid breaking JSX immediately */
+  color: var(--color-lime-dark);
+}
+
+.bg-gold-gradient {
+  background: var(--color-lime);
+}
+
+/* ===================== MINIMAL CARD ===================== */
+.glass-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: var(--transition);
+}
+
+.glass-card-light {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+/* ===================== BUTTONS ===================== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--color-dark);
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-primary:hover { 
+  background: var(--color-lime);
+  color: var(--color-dark);
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 20px rgba(163, 230, 53, 0.4); 
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 27px;
+  background: transparent;
+  color: var(--color-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  background: var(--color-dark);
+  color: var(--color-white);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--color-ash);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-ghost:hover { color: var(--color-dark); background: var(--color-surface); }
+
+/* ===================== SECTION ===================== */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  margin-bottom: 16px;
+}
+
+.section-label::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: var(--color-lime);
+}
+
+/* ===================== NAV ===================== */
+.nav-link {
+  color: var(--color-ash);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-lime);
+  transition: var(--transition);
+}
+
+.nav-link:hover { color: var(--color-dark); }
+.nav-link:hover::after { width: 100%; }
+.nav-link.active { color: var(--color-dark); }
+.nav-link.active::after { width: 100%; }
+
+/* ===================== FORM INPUTS ===================== */
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-dark);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  transition: var(--transition);
+  outline: none;
+}
+
+.input-field::placeholder { color: var(--color-ash); opacity: 0.8; }
+.input-field:focus { border-color: var(--color-lime-dark); box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.2); }
+
+.input-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-dark-muted);
+  margin-bottom: 6px;
+}
+
+/* ===================== TABLE ===================== */
+.data-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-ash);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.data-table td {
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: var(--color-dark);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tr:hover td { background: var(--color-surface); }
+
+/* ===================== BADGE ===================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-gold { background: var(--color-lime-light); color: var(--color-dark); }
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-gray { background: var(--color-surface); color: var(--color-dark-muted); border: 1px solid var(--color-border); }
+
+/* ===================== STAT CARD ===================== */
+.stat-card {
+  padding: 24px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  z-index: 0;
+}
+.stat-card > * { position: relative; z-index: 1; }
+
+/* ===================== SIDEBAR NAV ===================== */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--color-ash);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.sidebar-link:hover { background: var(--color-surface); color: var(--color-dark); }
+.sidebar-link.active { background: var(--color-lime-light); color: var(--color-dark); font-weight: 600; }
+
+/* ===================== ANIMATIONS ===================== */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface) 25%, #f1f5f9 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
