@@ -5,11 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Package, ShoppingCart, History,
   FolderKanban, Layers, LogOut, Menu, X, ExternalLink,
-  ChevronDown, BarChart3, NotebookTabs
+  ChevronDown, BarChart3, NotebookTabs, Tag, Cloud
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/admin', end: true },
+  { icon: Cloud, label: 'Cloud Sync', to: '/admin/sync' },
+  { icon: Tag, label: 'Price & Stock Check', to: '/admin/price-check' },
   { icon: Package, label: 'Inventory', to: '/admin/inventory' },
   { icon: ShoppingCart, label: 'Record Sale', to: '/admin/sales/new' },
   { icon: History, label: 'Sales History', to: '/admin/sales/history' },
@@ -105,9 +107,51 @@ export default function AdminLayout() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Bar */}
         <header style={{ height: 60, background: 'var(--color-white)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', flexShrink: 0 }}>
-          <button onClick={() => setSidebarOpen(o => !o)} className="btn-ghost" style={{ padding: 8 }}>
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setSidebarOpen(o => !o)} className="btn-ghost" style={{ padding: 8 }}>
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <Link
+              to="/admin/price-check"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 8,
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: 'var(--color-dark)',
+                textDecoration: 'none',
+                transition: 'var(--transition)',
+              }}
+            >
+              <Tag size={14} style={{ color: 'var(--color-lime-dark)' }} />
+              <span>Price Check</span>
+            </Link>
+            <Link
+              to="/admin/sync"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 8,
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: 'var(--color-dark)',
+                textDecoration: 'none',
+                transition: 'var(--transition)',
+              }}
+            >
+              <Cloud size={14} style={{ color: 'var(--color-lime-dark)' }} />
+              <span>Cloud Sync</span>
+            </Link>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-dark)' }}>{admin?.name || 'Admin'}</div>

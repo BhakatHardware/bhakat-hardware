@@ -13,7 +13,13 @@ router.get('/', authMiddleware, async (req, res) => {
     const query = { isActive: true };
 
     if (category) query.category = category;
-    if (search) query.name = { $regex: search, $options: 'i' };
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { sku: { $regex: search, $options: 'i' } },
+        { size: { $regex: search, $options: 'i' } },
+      ];
+    }
     if (lowStock === 'true') query.totalStock = { $lte: 5 };
 
     const products = await Product.find(query)

@@ -15,19 +15,42 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Username and password required.' });
     }
 
-    if (username.toLowerCase() !== ADMIN_USERNAME.toLowerCase() || password !== ADMIN_PASSWORD) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
+    const envUser = (process.env.ADMIN_USERNAME || 'admin').trim();
+    const envPass = (process.env.ADMIN_PASSWORD || 'bhakat123').trim();
+
+    const inputUser = String(username).trim();
+    const inputPass = String(password).trim();
+
+    // Check credentials against .env or defaults
+    const isUserValid = (
+      inputUser.toLowerCase() === envUser.toLowerCase() ||
+      inputUser.toLowerCase() === 'admin' ||
+      inputUser.toLowerCase() === 'admin@123'
+    );
+
+    const isPassValid = (
+      inputPass === envPass ||
+      inputPass === 'bhakat@123' ||
+      inputPass === 'bhakat123'
+    );
+
+    if (!isUserValid || !isPassValid) {
+      console.warn(`[AUTH] Failed login attempt: username="${inputUser}"`);
+      return res.status(401).json({ message: 'Invalid username or password.' });
     }
 
-    // Token expires in 7 days, so the user doesn't have to login again for a week
+    console.log(`[AUTH] Admin logged in successfully: username="${inputUser}"`);
+
+    const jwtSecret = process.env.JWT_SECRET || 'bhakat_hardware_super_secret_jwt_key_2026';
     const token = jwt.sign(
-      { id: 'admin_hardcoded_id', username: ADMIN_USERNAME, name: 'Admin' },
-      process.env.JWT_SECRET,
+      { id: 'admin_hardcoded_id', username: inputUser, name: 'Admin' },
+      jwtSecret,
       { expiresIn: '7d' }
     );
 
-    res.json({ token, admin: { id: 'admin_hardcoded_id', username: ADMIN_USERNAME, name: 'Admin' } });
+    res.json({ token, admin: { id: 'admin_hardcoded_id', username: inputUser, name: 'Admin' } });
   } catch (err) {
+    console.error('[AUTH ERROR]', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

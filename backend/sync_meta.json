@@ -1,0 +1,33 @@
+{
+  "lastSyncedAt": "2026-10-13T10:59:21.784Z",
+  "lastAction": "PULL",
+  "details": {
+    "pullResults": {
+      "products": {
+        "total": 1,
+        "upserted": 0,
+        "modified": 1
+      },
+      "sales": {
+        "total": 0,
+        "upserted": 0,
+        "modified": 0
+      },
+      "debts": {
+        "total": 0,
+        "upserted": 0,
+        "modified": 0
+      },
+      "materials": {
+        "total": 0,
+        "upserted": 0,
+        "modified": 0
+      },
+      "projects": {
+        "total": 0,
+        "upserted": 0,
+        "modified": 0
+      }
+    }
+  }
+}

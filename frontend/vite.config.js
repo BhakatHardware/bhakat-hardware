@@ -8,8 +8,13 @@ export default defineConfig({
     react(),
   ],
   server: {
+    host: true, // Listen on all network interfaces (allows mobile phone connection)
     proxy: {
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       }

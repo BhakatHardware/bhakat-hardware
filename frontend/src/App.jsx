@@ -21,6 +21,8 @@ import SalesHistory from './pages/admin/SalesHistory';
 import ManageProjects from './pages/admin/ManageProjects';
 import ManageMaterials from './pages/admin/ManageMaterials';
 import ManageDebts from './pages/admin/ManageDebts';
+import PriceCheck from './pages/admin/PriceCheck';
+import CloudSync from './pages/admin/CloudSync';
 
 
 // Layout
@@ -60,6 +62,8 @@ function App() {
             {/* Admin Protected Routes */}
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
+              <Route path="sync" element={<CloudSync />} />
+              <Route path="price-check" element={<PriceCheck />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="inventory/add" element={<AddProduct />} />
               <Route path="inventory/:id" element={<ProductDetail />} />

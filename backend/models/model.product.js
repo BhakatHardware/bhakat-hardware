@@ -42,24 +42,22 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-compute totalStock and avgPurchasePrice before save
-productSchema.pre('save', function (next) {
-  const activeBatches = this.batches.filter(b => b.quantityRemaining > 0);
+productSchema.pre('save', function () {
+  const activeBatches = (this.batches || []).filter(b => b.quantityRemaining > 0);
   this.totalStock = activeBatches.reduce((sum, b) => sum + b.quantityRemaining, 0);
-  if (activeBatches.length > 0) {
+  if (activeBatches.length > 0 && this.totalStock > 0) {
     const totalCost = activeBatches.reduce((sum, b) => sum + (b.purchasePrice * b.quantityRemaining), 0);
     this.avgPurchasePrice = totalCost / this.totalStock;
   }
-  next();
 });
 
 // Auto-generate SKU
-productSchema.pre('save', async function (next) {
+productSchema.pre('save', async function () {
   if (!this.sku) {
-    const prefix = this.category.slice(0, 2).toUpperCase();
+    const prefix = (this.category || 'GE').slice(0, 2).toUpperCase();
     const count = await mongoose.model('Product').countDocuments();
     this.sku = `${prefix}-${String(count + 1).padStart(4, '0')}`;
   }
-  next();
 });
 
 export default mongoose.model('Product', productSchema);

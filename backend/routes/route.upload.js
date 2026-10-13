@@ -8,9 +8,10 @@ router.post('/', authMiddleware, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No image file provided.' });
   }
-  
-  // multer-storage-cloudinary attaches the path property containing the Cloudinary URL
-  res.json({ imageUrl: req.file.path });
+
+  // Returns local path accessible via static /uploads route
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.json({ imageUrl, filename: req.file.filename });
 });
 
 export default router;
