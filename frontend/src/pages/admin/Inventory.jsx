@@ -81,9 +81,8 @@ export default function Inventory() {
                 <th>SKU</th>
                 <th>Category</th>
                 <th>Size/Unit</th>
-                <th>Batches</th>
                 <th>Stock</th>
-                <th>Avg Cost</th>
+                <th>Purchase Price</th>
                 <th>Selling Price</th>
                 <th>Status</th>
                 <th></th>
@@ -98,7 +97,7 @@ export default function Inventory() {
                 </tr>
               ))}
               {!loading && products.length === 0 && (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 60, color: 'var(--color-ash)' }}>
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 60, color: 'var(--color-ash)' }}>
                   <Package size={40} style={{ margin: '0 auto 12px', opacity: 0.3, display: 'block' }} />
                   No products found. <Link to="/admin/inventory/add" style={{ color: 'var(--color-lime-dark)' }}>Add your first product.</Link>
                 </td></tr>
@@ -123,9 +122,8 @@ export default function Inventory() {
                   <td><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--color-ash)' }}>{p.sku}</span></td>
                   <td><span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>{p.category}</span></td>
                   <td style={{ color: 'var(--color-ash)', fontSize: '0.8rem' }}>{p.size ? `${p.size} / ` : ''}{p.unit}</td>
-                  <td style={{ color: 'var(--color-ash)', fontSize: '0.8rem' }}>{p.batches?.filter(b => b.quantityRemaining > 0).length || 0} active</td>
                   <td style={{ fontWeight: 700 }}>{p.totalStock}</td>
-                  <td style={{ color: 'var(--color-ash)', fontSize: '0.85rem' }}>{fmt(p.avgPurchasePrice)}</td>
+                  <td style={{ color: 'var(--color-ash)', fontSize: '0.85rem' }}>{fmt(p.purchasePrice ?? p.avgPurchasePrice)}</td>
                   <td style={{ fontWeight: 700, color: 'var(--color-lime-dark)' }}>{fmt(p.sellingPrice)}</td>
                   <td>{stockBadge(p.totalStock)}</td>
                   <td style={{ position: 'relative' }}>

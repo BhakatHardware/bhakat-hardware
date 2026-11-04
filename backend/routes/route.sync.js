@@ -11,7 +11,6 @@ import Sale from '../models/model.sale.js';
 import Debt from '../models/model.debt.js';
 import Material from '../models/model.material.js';
 import Project from '../models/model.project.js';
-import Admin from '../models/model.admin.js';
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);

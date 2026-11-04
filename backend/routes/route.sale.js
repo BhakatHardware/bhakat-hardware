@@ -6,7 +6,6 @@ import authMiddleware from '../middleware/middleware.auth.js';
 const router = express.Router();
 
 // POST /api/sales — Record a sale
-// Items can specify batchId (specific batch) or null (auto-deduct oldest first)
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const {
@@ -30,52 +29,29 @@ router.post('/', authMiddleware, async (req, res) => {
       }
 
       const qty = Number(item.quantity);
-      const price = Number(item.sellingPrice || product.sellingPrice);
+      const price = Number(item.sellingPrice ?? product.sellingPrice ?? 0);
+      const costPerUnit = Number(product.purchasePrice || 0);
       const lineRevenue = qty * price;
+      const lineCost = qty * costPerUnit;
+
       subtotal += lineRevenue;
-
-      let batchBreakdown = [];
-      let lineCost = 0;
-
-      if (item.batchId) {
-        // Sell from specific batch
-        const batch = product.batches.find(b => b.batchId === item.batchId);
-        if (!batch) return res.status(400).json({ message: `Batch ${item.batchId} not found.` });
-        if (batch.quantityRemaining < qty) {
-          return res.status(400).json({ message: `Insufficient stock in batch ${item.batchId}. Available: ${batch.quantityRemaining}` });
-        }
-        batch.quantityRemaining -= qty;
-        lineCost = qty * batch.purchasePrice;
-        batchBreakdown = [{ batchId: batch.batchId, quantityFromBatch: qty, purchasePriceAtBatch: batch.purchasePrice }];
-      } else {
-        // Auto-deduct: oldest batch first (FIFO by default, but owner doesn't mind order)
-        let remaining = qty;
-        for (const batch of product.batches) {
-          if (remaining <= 0) break;
-          if (batch.quantityRemaining <= 0) continue;
-
-          const take = Math.min(batch.quantityRemaining, remaining);
-          batch.quantityRemaining -= take;
-          lineCost += take * batch.purchasePrice;
-          batchBreakdown.push({ batchId: batch.batchId, quantityFromBatch: take, purchasePriceAtBatch: batch.purchasePrice });
-          remaining -= take;
-        }
-      }
-
       totalCost += lineCost;
+
+      product.totalStock -= qty;
+      await product.save();
+
       saleItems.push({
         product: product._id,
         productName: product.name,
         productSku: product.sku,
         quantity: qty,
         sellingPrice: price,
-        batchBreakdown,
+        purchasePrice: costPerUnit,
+        batchBreakdown: [],
         totalRevenue: lineRevenue,
         totalCost: lineCost,
         profit: lineRevenue - lineCost,
       });
-
-      await product.save();
     }
 
     const totalAmount = subtotal - discount;
@@ -158,7 +134,6 @@ router.get('/product/:productId', authMiddleware, async (req, res) => {
         quantity: item.quantity,
         sellingPrice: item.sellingPrice,
         profit: item.profit,
-        batchBreakdown: item.batchBreakdown
       };
     });
 

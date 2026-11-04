@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Plus, Edit2, Save, X, Package } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Save, X, Package, TrendingUp } from 'lucide-react';
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
@@ -17,8 +17,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
-  const [addingBatch, setAddingBatch] = useState(false);
-  const [batchForm, setBatchForm] = useState({ purchasePrice: '', quantityBought: '', purchaseNote: '' });
+  const [addingStock, setAddingStock] = useState(false);
+  const [restockForm, setRestockForm] = useState({ quantity: '', purchasePrice: '' });
 
   const fetch = async () => {
     try {
@@ -29,23 +29,42 @@ export default function ProductDetail() {
       setProduct(res.data);
       setSalesHistory(salesRes.data);
       setEditForm({
-        name: res.data.name, category: res.data.category, subCategory: res.data.subCategory,
-        size: res.data.size, unit: res.data.unit, sellingPrice: res.data.sellingPrice,
-        description: res.data.description, imageUrl: res.data.imageUrl || '',
+        name: res.data.name,
+        category: res.data.category,
+        subCategory: res.data.subCategory,
+        size: res.data.size,
+        unit: res.data.unit,
+        purchasePrice: res.data.purchasePrice ?? res.data.avgPurchasePrice ?? 0,
+        sellingPrice: res.data.sellingPrice ?? 0,
+        totalStock: res.data.totalStock ?? 0,
+        description: res.data.description,
+        imageUrl: res.data.imageUrl || '',
       });
-    } catch { toast.error('Product not found.'); navigate('/admin/inventory'); }
-    finally { setLoading(false); }
+      setRestockForm({
+        quantity: '',
+        purchasePrice: res.data.purchasePrice ?? res.data.avgPurchasePrice ?? ''
+      });
+    } catch {
+      toast.error('Product not found.');
+      navigate('/admin/inventory');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetch(); }, [id]);
 
   const handleSave = async () => {
+    if (!editForm.name?.trim()) return toast.error('Product name is required.');
+    if (!editForm.unit?.trim()) return toast.error('Product unit is required.');
     try {
       await axios.put(`/api/products/${id}`, editForm);
       toast.success('Product updated.');
       setEditing(false);
       fetch();
-    } catch { toast.error('Failed to update.'); }
+    } catch {
+      toast.error('Failed to update.');
+    }
   };
 
   const [uploading, setUploading] = useState(false);
@@ -68,22 +87,26 @@ export default function ProductDetail() {
     }
   };
 
-  const handleAddBatch = async () => {
-    if (!batchForm.purchasePrice || !batchForm.quantityBought) return toast.error('Price and quantity required.');
+  const handleRestock = async () => {
+    const qty = Number(restockForm.quantity);
+    if (!qty || qty <= 0) return toast.error('Please enter a valid quantity to add.');
     try {
-      await axios.post(`/api/products/${id}/batch`, batchForm);
-      toast.success('New batch added!');
-      setAddingBatch(false);
-      setBatchForm({ purchasePrice: '', quantityBought: '', purchaseNote: '' });
+      await axios.post(`/api/products/${id}/restock`, restockForm);
+      toast.success('Stock updated successfully!');
+      setAddingStock(false);
       fetch();
-    } catch { toast.error('Failed to add batch.'); }
+    } catch {
+      toast.error('Failed to update stock.');
+    }
   };
 
   if (loading) return <div className="skeleton" style={{ height: 400, borderRadius: 16 }} />;
   if (!product) return null;
 
-  const activeBatches = product.batches?.filter(b => b.quantityRemaining > 0) || [];
-  const exhaustedBatches = product.batches?.filter(b => b.quantityRemaining <= 0) || [];
+  const currentPurchasePrice = Number(product.purchasePrice ?? product.avgPurchasePrice ?? 0);
+  const currentSellingPrice = Number(product.sellingPrice ?? 0);
+  const marginAmt = currentSellingPrice - currentPurchasePrice;
+  const marginPct = currentPurchasePrice > 0 ? ((marginAmt / currentPurchasePrice) * 100).toFixed(1) : 0;
 
   return (
     <div style={{ maxWidth: 800 }}>
@@ -106,15 +129,15 @@ export default function ProductDetail() {
       </div>
 
       {/* Stats row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
         {[
-          { label: 'Total Stock', value: product.totalStock, color: product.totalStock === 0 ? '#f87171' : product.totalStock <= 5 ? '#fbbf24' : '#4ade80' },
-          { label: 'Avg Cost', value: fmt(product.avgPurchasePrice), color: 'var(--color-ash)' },
-          { label: 'Selling Price', value: fmt(product.sellingPrice), color: 'var(--color-lime-dark)' },
-          { label: 'Active Batches', value: activeBatches.length, color: '#60a5fa' },
+          { label: 'Total Stock', value: `${product.totalStock} ${product.unit}`, color: product.totalStock === 0 ? '#f87171' : product.totalStock <= 5 ? '#fbbf24' : '#4ade80' },
+          { label: 'Purchase Price', value: fmt(currentPurchasePrice), color: 'var(--color-ash)' },
+          { label: 'Selling Price', value: fmt(currentSellingPrice), color: 'var(--color-lime-dark)' },
+          { label: 'Margin', value: `${fmt(marginAmt)} (${marginPct}%)`, color: marginAmt >= 0 ? '#4ade80' : '#f87171' },
         ].map(s => (
           <div key={s.label} className="glass-card" style={{ padding: '16px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-ash)', marginTop: 4 }}>{s.label}</div>
           </div>
         ))}
@@ -126,8 +149,8 @@ export default function ProductDetail() {
           initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
             <div style={{ gridColumn: '1/-1' }}>
-              <label className="input-label">Name</label>
-              <input className="input-field" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+              <label className="input-label">Name *</label>
+              <input className="input-field" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
             </div>
             <div>
               <label className="input-label">Category</label>
@@ -144,14 +167,22 @@ export default function ProductDetail() {
               <input className="input-field" value={editForm.size} onChange={e => setEditForm(f => ({ ...f, size: e.target.value }))} />
             </div>
             <div>
-              <label className="input-label">Unit</label>
-              <select className="input-field" value={editForm.unit} onChange={e => setEditForm(f => ({ ...f, unit: e.target.value }))}>
+              <label className="input-label">Unit *</label>
+              <select className="input-field" value={editForm.unit} onChange={e => setEditForm(f => ({ ...f, unit: e.target.value }))} required>
                 {UNITS.map(u => <option key={u} value={u} style={{ background: '#ffffff' }}>{u}</option>)}
               </select>
             </div>
             <div>
+              <label className="input-label">Purchase Price / Cost (₹)</label>
+              <input className="input-field" type="number" min="0" step="0.01" value={editForm.purchasePrice} onChange={e => setEditForm(f => ({ ...f, purchasePrice: e.target.value }))} />
+            </div>
+            <div>
               <label className="input-label">Selling Price (₹)</label>
-              <input className="input-field" type="number" value={editForm.sellingPrice} onChange={e => setEditForm(f => ({ ...f, sellingPrice: e.target.value }))} />
+              <input className="input-field" type="number" min="0" step="0.01" value={editForm.sellingPrice} onChange={e => setEditForm(f => ({ ...f, sellingPrice: e.target.value }))} />
+            </div>
+            <div>
+              <label className="input-label">Current Stock</label>
+              <input className="input-field" type="number" min="0" value={editForm.totalStock} onChange={e => setEditForm(f => ({ ...f, totalStock: e.target.value }))} />
             </div>
             <div style={{ gridColumn: '1/-1' }}>
               <label className="input-label">Description</label>
@@ -171,84 +202,43 @@ export default function ProductDetail() {
         </motion.div>
       )}
 
-      {/* Batches */}
+      {/* Stock Management / Quick Restock */}
       <div className="glass-card" style={{ padding: 24, marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ fontWeight: 700 }}>Purchase Batches</div>
-          <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.8rem', gap: 6 }} onClick={() => setAddingBatch(a => !a)}>
-            <Plus size={14} /> Add Restock
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: addingStock ? 16 : 0 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '1rem' }}>Stock Management</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-ash)', marginTop: 2 }}>
+              Current stock: <strong style={{ color: 'var(--color-dark)' }}>{product.totalStock} {product.unit}</strong> · Cost: <strong>{fmt(currentPurchasePrice)}</strong>
+            </div>
+          </div>
+          <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.8rem', gap: 6 }} onClick={() => setAddingStock(a => !a)}>
+            <Plus size={14} /> Add Stock / Restock
           </button>
         </div>
 
-        {/* Add Batch Form */}
-        {addingBatch && (
-          <motion.div style={{ background: 'rgba(101,163,13,0.05)', border: '1px solid rgba(101,163,13,0.2)', borderRadius: 10, padding: 20, marginBottom: 20 }}
+        {/* Restock Form */}
+        {addingStock && (
+          <motion.div style={{ background: 'rgba(101,163,13,0.05)', border: '1px solid rgba(101,163,13,0.2)', borderRadius: 10, padding: 20, marginTop: 12 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 16, color: 'var(--color-lime-dark)' }}>New Purchase Batch</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 14, color: 'var(--color-lime-dark)' }}>Add Stock & Update Purchase Price</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
               <div>
-                <label className="input-label">Purchase Price / Unit (₹)</label>
-                <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00"
-                  value={batchForm.purchasePrice} onChange={e => setBatchForm(f => ({ ...f, purchasePrice: e.target.value }))} />
+                <label className="input-label">Quantity to Add *</label>
+                <input className="input-field" type="number" min="1" placeholder="e.g. 10"
+                  value={restockForm.quantity} onChange={e => setRestockForm(f => ({ ...f, quantity: e.target.value }))} />
               </div>
               <div>
-                <label className="input-label">Quantity</label>
-                <input className="input-field" type="number" min="1" placeholder="0"
-                  value={batchForm.quantityBought} onChange={e => setBatchForm(f => ({ ...f, quantityBought: e.target.value }))} />
-              </div>
-              <div style={{ gridColumn: '1/-1' }}>
-                <label className="input-label">Note</label>
-                <input className="input-field" placeholder="Supplier, invoice number, etc."
-                  value={batchForm.purchaseNote} onChange={e => setBatchForm(f => ({ ...f, purchaseNote: e.target.value }))} />
+                <label className="input-label">New Purchase Price / Unit (₹)</label>
+                <input className="input-field" type="number" min="0" step="0.01" placeholder={String(currentPurchasePrice)}
+                  value={restockForm.purchasePrice} onChange={e => setRestockForm(f => ({ ...f, purchasePrice: e.target.value }))} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-              <button onClick={handleAddBatch} className="btn-primary" style={{ padding: '9px 20px', fontSize: '0.85rem' }}>Add Batch</button>
-              <button onClick={() => setAddingBatch(false)} className="btn-ghost">Cancel</button>
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <button onClick={handleRestock} className="btn-primary" style={{ padding: '9px 20px', fontSize: '0.85rem' }}>Save Stock</button>
+              <button onClick={() => setAddingStock(false)} className="btn-ghost">Cancel</button>
             </div>
           </motion.div>
         )}
-
-        {/* Active Batches */}
-        {activeBatches.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.1em', marginBottom: 10 }}>ACTIVE BATCHES</div>
-            {activeBatches.map(b => (
-              <div key={b.batchId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.1)', borderRadius: 10, marginBottom: 8 }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--color-dark)' }}>Batch #{b.batchId}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-ash)', marginTop: 2 }}>{b.note || 'No notes'}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--color-ash)' }}>{new Date(b.purchaseDate).toLocaleDateString('en-IN')}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 700, color: 'var(--color-lime-dark)' }}>{fmt(b.purchasePrice)}/unit</div>
-                  <div style={{ fontSize: '0.8rem', color: '#4ade80', marginTop: 2 }}>{b.quantityRemaining} / {b.quantityBought} left</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Exhausted Batches */}
-        {exhaustedBatches.length > 0 && (
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-ash)', letterSpacing: '0.1em', marginBottom: 10 }}>EXHAUSTED BATCHES</div>
-            {exhaustedBatches.map(b => (
-              <div key={b.batchId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: 'rgba(0,0,0,0.02)', borderRadius: 10, marginBottom: 6, opacity: 0.5 }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>Batch #{b.batchId}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--color-ash)' }}>{b.note || 'No notes'} · {new Date(b.purchaseDate).toLocaleDateString('en-IN')}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>{fmt(b.purchasePrice)}/unit</div>
-                  <div style={{ fontSize: '0.75rem', color: '#f87171' }}>Sold Out ({b.quantityBought} bought)</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {product.batches?.length === 0 && <p style={{ color: 'var(--color-ash)', fontSize: '0.875rem' }}>No batches yet.</p>}
       </div>
 
       {/* Sales History */}

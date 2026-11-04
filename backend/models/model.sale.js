@@ -7,13 +7,7 @@ const saleItemSchema = new mongoose.Schema({
   productSku: { type: String },
   quantity: { type: Number, required: true },
   sellingPrice: { type: Number, required: true },  // price at time of sale
-
-  // Batch mode: track which batches stock came from for profit calc
-  batchBreakdown: [{
-    batchId: { type: String },
-    quantityFromBatch: { type: Number },
-    purchasePriceAtBatch: { type: Number },
-  }],
+  purchasePrice: { type: Number, default: 0 },    // cost per unit at time of sale
 
   // Computed profit for this line item
   totalRevenue: { type: Number, required: true },

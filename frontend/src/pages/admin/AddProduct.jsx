@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, DollarSign } from 'lucide-react';
 
 const CATEGORIES = ['General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
@@ -12,9 +12,16 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    name: '', category: 'General Hardware', subCategory: '', size: '', unit: 'pcs',
-    sellingPrice: '', description: '',
-    purchasePrice: '', quantityBought: '', purchaseNote: '', imageUrl: ''
+    name: '',
+    category: 'General Hardware',
+    subCategory: '',
+    size: '',
+    unit: 'pcs',
+    purchasePrice: '',
+    sellingPrice: '',
+    totalStock: '',
+    description: '',
+    imageUrl: '',
   });
   const [uploading, setUploading] = useState(false);
 
@@ -41,10 +48,16 @@ export default function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.purchasePrice || !form.quantityBought) return toast.error('Purchase price and quantity are required.');
+    if (!form.name.trim()) return toast.error('Product name is required.');
+    if (!form.unit.trim()) return toast.error('Product unit is required.');
     setLoading(true);
     try {
-      await axios.post('/api/products', form);
+      await axios.post('/api/products', {
+        ...form,
+        purchasePrice: form.purchasePrice ? Number(form.purchasePrice) : 0,
+        sellingPrice: form.sellingPrice ? Number(form.sellingPrice) : 0,
+        totalStock: form.totalStock ? Number(form.totalStock) : 0,
+      });
       toast.success('Product added to inventory!');
       navigate('/admin/inventory');
     } catch (err) {
@@ -60,16 +73,16 @@ export default function AddProduct() {
         </button>
         <div>
           <h1 className="font-display" style={{ fontSize: '1.5rem', fontWeight: 800 }}>Add New Product</h1>
-          <p style={{ color: 'var(--color-ash)', fontSize: '0.875rem' }}>Add a product with its first purchase batch.</p>
+          <p style={{ color: 'var(--color-ash)', fontSize: '0.875rem' }}>Only name and unit are required. Prices and stock can be set now or updated anytime.</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Product Info */}
+        {/* Product Basic Info */}
         <motion.div className="glass-card" style={{ padding: 28, marginBottom: 20 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
             <Package size={18} color="var(--color-lime-dark)" />
-            <span style={{ fontWeight: 700 }}>Product Information</span>
+            <span style={{ fontWeight: 700 }}>Basic Information</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -79,7 +92,7 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="input-label">Category *</label>
+              <label className="input-label">Category</label>
               <select className="input-field" value={form.category} onChange={e => set('category', e.target.value)}>
                 {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#ffffff' }}>{c}</option>)}
               </select>
@@ -96,15 +109,10 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="input-label">Unit</label>
-              <select className="input-field" value={form.unit} onChange={e => set('unit', e.target.value)}>
+              <label className="input-label">Unit *</label>
+              <select className="input-field" value={form.unit} onChange={e => set('unit', e.target.value)} required>
                 {UNITS.map(u => <option key={u} value={u} style={{ background: '#ffffff' }}>{u}</option>)}
               </select>
-            </div>
-
-            <div>
-              <label className="input-label">Selling Price (₹) *</label>
-              <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.sellingPrice} onChange={e => set('sellingPrice', e.target.value)} required />
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
@@ -125,41 +133,41 @@ export default function AddProduct() {
           </div>
         </motion.div>
 
-        {/* First Batch / Purchase */}
-        <motion.div className="glass-card" style={{ padding: 28, marginBottom: 24, border: '1px solid rgba(101,163,13,0.2)' }}
+        {/* Pricing & Stock */}
+        <motion.div className="glass-card" style={{ padding: 28, marginBottom: 24 }}
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <span style={{ fontWeight: 700 }}>First Purchase Batch</span>
-            <span className="badge badge-gold">Batch #1</span>
+            <DollarSign size={18} color="var(--color-lime-dark)" />
+            <span style={{ fontWeight: 700 }}>Pricing & Stock (Optional)</span>
           </div>
           <p style={{ color: 'var(--color-ash)', fontSize: '0.8rem', marginBottom: 20 }}>
-            Record the first time you're buying/adding this product to stock.
+            Set current purchase price, selling price, and opening stock if available.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
             <div>
-              <label className="input-label">Purchase Price / Unit (₹) *</label>
-              <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.purchasePrice} onChange={e => set('purchasePrice', e.target.value)} required />
-              {form.sellingPrice && form.purchasePrice && (
+              <label className="input-label">Purchase Price / Unit (₹)</label>
+              <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.purchasePrice} onChange={e => set('purchasePrice', e.target.value)} />
+              {form.sellingPrice && form.purchasePrice && Number(form.purchasePrice) > 0 && (
                 <div style={{ fontSize: '0.75rem', color: '#4ade80', marginTop: 4 }}>
-                  Margin: ₹{(form.sellingPrice - form.purchasePrice).toFixed(2)} ({(((form.sellingPrice - form.purchasePrice) / form.purchasePrice) * 100).toFixed(1)}%)
+                  Margin: ₹{(Number(form.sellingPrice) - Number(form.purchasePrice)).toFixed(2)} ({(((Number(form.sellingPrice) - Number(form.purchasePrice)) / Number(form.purchasePrice)) * 100).toFixed(1)}%)
                 </div>
               )}
             </div>
 
             <div>
-              <label className="input-label">Quantity Bought *</label>
-              <input className="input-field" type="number" min="1" placeholder="0" value={form.quantityBought} onChange={e => set('quantityBought', e.target.value)} required />
-              {form.purchasePrice && form.quantityBought && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-ash)', marginTop: 4 }}>
-                  Total cost: ₹{(form.purchasePrice * form.quantityBought).toLocaleString('en-IN')}
-                </div>
-              )}
+              <label className="input-label">Selling Price / Unit (₹)</label>
+              <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.sellingPrice} onChange={e => set('sellingPrice', e.target.value)} />
             </div>
 
-            <div style={{ gridColumn: '1/-1' }}>
-              <label className="input-label">Batch Note</label>
-              <input className="input-field" placeholder="e.g., Bought from Ramesh Traders, invoice #123" value={form.purchaseNote} onChange={e => set('purchaseNote', e.target.value)} />
+            <div>
+              <label className="input-label">Initial Stock Quantity</label>
+              <input className="input-field" type="number" min="0" placeholder="0" value={form.totalStock} onChange={e => set('totalStock', e.target.value)} />
+              {form.purchasePrice && form.totalStock && Number(form.totalStock) > 0 && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-ash)', marginTop: 4 }}>
+                  Total cost: ₹{(Number(form.purchasePrice) * Number(form.totalStock)).toLocaleString('en-IN')}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

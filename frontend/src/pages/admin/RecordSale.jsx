@@ -36,9 +36,9 @@ export default function RecordSale() {
 
   const addItem = (product) => {
     setItems(prev => {
-      const existing = prev.find(i => i.productId === product._id && !i.batchId);
+      const existing = prev.find(i => i.productId === product._id);
       if (existing) {
-        return prev.map(i => i.productId === product._id && !i.batchId ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => i.productId === product._id ? { ...i, quantity: Math.min(i.quantity + 1, i.maxStock) } : i);
       }
       return [...prev, {
         productId: product._id,
@@ -46,9 +46,7 @@ export default function RecordSale() {
         productSku: product.sku,
         sellingPrice: product.sellingPrice,
         quantity: 1,
-        batchId: null, // null = auto (FIFO)
         maxStock: product.totalStock,
-        batches: product.batches?.filter(b => b.quantityRemaining > 0) || [],
       }];
     });
     setSearchQ('');
@@ -68,7 +66,7 @@ export default function RecordSale() {
     try {
       await axios.post('/api/sales', {
         customerName, customerPhone,
-        items: items.map(i => ({ productId: i.productId, sellingPrice: i.sellingPrice, quantity: i.quantity, batchId: i.batchId })),
+        items: items.map(i => ({ productId: i.productId, sellingPrice: i.sellingPrice, quantity: i.quantity })),
         discount: Number(discount),
         paymentMode, paymentStatus,
         amountPaid: paymentStatus === 'Paid' ? totalAmount : Number(amountPaid),
@@ -150,7 +148,7 @@ export default function RecordSale() {
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label className="input-label">Qty</label>
                   <input className="input-field" type="number" min="1" max={item.maxStock} value={item.quantity}
@@ -160,17 +158,6 @@ export default function RecordSale() {
                   <label className="input-label">Price / Unit (₹)</label>
                   <input className="input-field" type="number" min="0" step="0.01" value={item.sellingPrice}
                     onChange={e => updateItem(idx, 'sellingPrice', e.target.value)} />
-                </div>
-                <div>
-                  <label className="input-label">Sell From Batch</label>
-                  <select className="input-field" value={item.batchId || ''} onChange={e => updateItem(idx, 'batchId', e.target.value || null)}>
-                    <option value="" style={{ background: '#ffffff' }}>Auto (No Preference)</option>
-                    {item.batches.map(b => (
-                      <option key={b.batchId} value={b.batchId} style={{ background: '#ffffff' }}>
-                        {b.batchId} · Cost:{fmt(b.purchasePrice)} · {b.quantityRemaining} left
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
