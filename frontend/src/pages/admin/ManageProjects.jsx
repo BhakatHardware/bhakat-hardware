@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, Save, X, FolderKanban } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const CATEGORIES = ['Residential', 'Commercial', 'Industrial', 'Infrastructure', 'Other'];
 const EMPTY_FORM = { title: '', description: '', location: '', completionYear: '', category: 'Residential', imageUrl: '', materials: '', clientName: '', isFeatured: false, isPublished: true };
 
 export default function ManageProjects() {
+  const { openImage } = useImageModal();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -137,7 +140,25 @@ export default function ManageProjects() {
                     {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)', fontWeight: 600 }}>Uploading...</span>}
                   </div>
                   {form.imageUrl && (
-                    <img src={form.imageUrl} alt="Preview" style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                    <div style={{ display: 'inline-block' }}>
+                      <img
+                        src={getImageUrl(form.imageUrl)}
+                        alt="Preview"
+                        onError={handleImageError}
+                        onClick={() => openImage(getImageUrl(form.imageUrl), form.title || 'Project Image Preview')}
+                        title="Click to view full image"
+                        style={{
+                          height: 80,
+                          borderRadius: 8,
+                          objectFit: 'cover',
+                          cursor: 'zoom-in',
+                          border: '1px solid var(--color-border)',
+                          transition: 'transform 0.15s ease',
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+                        onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      />
+                    </div>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -170,7 +191,27 @@ export default function ManageProjects() {
           {projects.map(p => (
             <motion.div key={p._id} className="glass-card" style={{ padding: 20, position: 'relative', opacity: p.isPublished ? 1 : 0.5 }}
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: p.isPublished ? 1 : 0.5, y: 0 }}>
-              {p.imageUrl && <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 10, marginBottom: 14 }} />}
+              {p.imageUrl && (
+                <div
+                  style={{ width: '100%', height: 140, marginBottom: 14, overflow: 'hidden', borderRadius: 10, cursor: 'zoom-in' }}
+                  onClick={() => openImage(getImageUrl(p.imageUrl), p.title, `${p.category || ''} • ${p.location || ''}`)}
+                  title="Click to view full image"
+                >
+                  <img
+                    src={getImageUrl(p.imageUrl)}
+                    alt={p.title}
+                    onError={handleImageError}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      transition: 'transform 0.3s ease',
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
+                    onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                 <span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>{p.category}</span>
                 {!p.isPublished && <span className="badge badge-gray" style={{ fontSize: '0.65rem' }}>Hidden</span>}

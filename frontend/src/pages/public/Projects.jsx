@@ -3,6 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Building2, MapPin, Calendar } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const DEFAULT_PROJECTS = [
   { _id: '1', title: 'Residential High-Rise Complex', location: 'Midnapore', completionYear: 2024, category: 'Residential', description: 'Multi-story residential building featuring AAC block construction for superior insulation and earthquake resistance.', materials: ['AAC Blocks', 'TMT Steel', 'Cement', 'Sand'] },
@@ -19,6 +21,7 @@ const CAT_COLORS = {
 };
 
 export default function Projects() {
+  const { openImage } = useImageModal();
   const [projects, setProjects] = useState(DEFAULT_PROJECTS);
 
   useEffect(() => {
@@ -62,7 +65,20 @@ export default function Projects() {
               >
                 {/* Image placeholder / actual image */}
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: 200, objectFit: 'cover' }} />
+                  <div
+                    style={{ width: '100%', height: 200, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-surface)' }}
+                    onClick={() => openImage(getImageUrl(p.imageUrl), p.title, `${p.category || ''} • ${p.location || ''}`)}
+                    title="Click to view full image"
+                  >
+                    <img
+                      src={getImageUrl(p.imageUrl)}
+                      alt={p.title}
+                      onError={handleImageError}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                      onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                      onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                    />
+                  </div>
                 ) : (
                   <div style={{ height: 180, background: 'linear-gradient(135deg, rgba(163,230,53,0.5), rgba(101,163,13,0.1))', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                     <Building2 size={48} color="rgba(101,163,13,0.3)" />

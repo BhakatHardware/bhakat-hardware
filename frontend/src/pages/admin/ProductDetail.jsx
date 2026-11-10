@@ -4,12 +4,15 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Plus, Edit2, Save, X, Package, TrendingUp } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
 const CATEGORIES = ['General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 
 export default function ProductDetail() {
+  const { openImage } = useImageModal();
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
@@ -113,7 +116,24 @@ export default function ProductDetail() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
         <button onClick={() => navigate('/admin/inventory')} className="btn-ghost" style={{ padding: 8 }}><ArrowLeft size={18} /></button>
         {product.imageUrl && !editing && (
-          <img src={product.imageUrl} alt={product.name} style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover' }} />
+          <img
+            src={getImageUrl(product.imageUrl)}
+            alt={product.name}
+            onError={handleImageError}
+            onClick={() => openImage(getImageUrl(product.imageUrl), product.name, `${product.category} • SKU: ${product.sku || 'N/A'}`)}
+            title="Click to view full image"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 12,
+              objectFit: 'cover',
+              cursor: 'zoom-in',
+              border: '1px solid var(--color-border)',
+              transition: 'transform 0.15s ease',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+            onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          />
         )}
         <div style={{ flex: 1 }}>
           <h1 className="font-display" style={{ fontSize: '1.4rem', fontWeight: 800 }}>{product.name}</h1>
@@ -195,7 +215,20 @@ export default function ProductDetail() {
                 {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)' }}>Uploading...</span>}
               </div>
               {editForm.imageUrl && (
-                <img src={editForm.imageUrl} alt="Preview" style={{ height: 60, borderRadius: 6, objectFit: 'cover' }} />
+                <img
+                  src={getImageUrl(editForm.imageUrl)}
+                  alt="Preview"
+                  onError={handleImageError}
+                  onClick={() => openImage(getImageUrl(editForm.imageUrl), editForm.name || 'Image Preview')}
+                  title="Click to view full image"
+                  style={{
+                    height: 60,
+                    borderRadius: 6,
+                    objectFit: 'cover',
+                    cursor: 'zoom-in',
+                    border: '1px solid var(--color-border)',
+                  }}
+                />
               )}
             </div>
           </div>

@@ -24,14 +24,14 @@ router.post('/login', async (req, res) => {
 
     const jwtSecret = process.env.JWT_SECRET || 'bhakat_hardware_super_secret_jwt_key_2026';
     const token = jwt.sign(
-      { id: 'admin_id', username: envUsername, name: 'Admin' },
+      { id: 'admin_id', username: envUsername, name: 'Bhakat Hardware' },
       jwtSecret,
       { expiresIn: '7d' }
     );
 
     res.json({
       token,
-      admin: { id: 'admin_id', username: envUsername, name: 'Admin' }
+      admin: { id: 'admin_id', username: envUsername, name: 'Bhakat Hardware' }
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

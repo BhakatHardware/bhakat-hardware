@@ -4,12 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Search, X, Tag, Package, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const CATEGORIES = ['All', 'General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 export default function PriceCheck() {
+  const { openImage } = useImageModal();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -246,6 +249,31 @@ export default function PriceCheck() {
                         : '5px solid #22c55e',
                     }}
                   >
+                    {/* Thumbnail if product has image */}
+                    {p.imageUrl && (
+                      <div
+                        style={{ flexShrink: 0, cursor: 'zoom-in' }}
+                        onClick={() => openImage(getImageUrl(p.imageUrl), p.name, `${p.category || ''} • SKU: ${p.sku || ''}`)}
+                        title="Click to view full image"
+                      >
+                        <img
+                          src={getImageUrl(p.imageUrl)}
+                          alt={p.name}
+                          onError={handleImageError}
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 8,
+                            objectFit: 'cover',
+                            border: '1px solid var(--color-border)',
+                            transition: 'transform 0.15s ease',
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
+                          onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                        />
+                      </div>
+                    )}
+
                     {/* Left: Product Name & Unit/Size */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

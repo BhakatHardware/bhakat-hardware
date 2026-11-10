@@ -3,6 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Package } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const DEFAULT_MATERIALS = [
   { _id: '1', name: 'Autoclaved Aerated Concrete (AAC) Blocks', category: 'Masonry', brand: 'Ual Kon Crete / Rashmi / Joyce / Biltech', description: 'The modern standard for high-rise construction. Lightweight, heat-resistant, and eco-friendly. We are the exclusive authorized supplier for major projects in Midnapore.', tag: 'Exclusive' },
@@ -22,6 +24,7 @@ const TAG_COLORS = {
 };
 
 export default function Materials() {
+  const { openImage } = useImageModal();
   const [materials, setMaterials] = useState(DEFAULT_MATERIALS);
   const [loading, setLoading] = useState(true);
 
@@ -73,8 +76,28 @@ export default function Materials() {
                     </div>
                   )}
                   {m.imageUrl ? (
-                    <div style={{ width: '100%', height: 220, borderRadius: 8, overflow: 'hidden', marginBottom: 20, background: 'var(--color-surface)', flexShrink: 0 }}>
-                      <img src={m.imageUrl} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />
+                    <div
+                      style={{
+                        width: '100%',
+                        height: 220,
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        marginBottom: 20,
+                        background: 'var(--color-surface)',
+                        flexShrink: 0,
+                        cursor: 'zoom-in',
+                      }}
+                      onClick={() => openImage(getImageUrl(m.imageUrl), m.name, `${m.category || ''} • ${m.brand || ''}`)}
+                      title="Click to view full image"
+                    >
+                      <img
+                        src={getImageUrl(m.imageUrl)}
+                        alt={m.name}
+                        onError={handleImageError}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
+                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                      />
                     </div>
                   ) : (
                     <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(101,163,13,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>

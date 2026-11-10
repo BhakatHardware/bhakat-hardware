@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
+import { ImageModalProvider } from './context/ImageModalContext';
 
 // Public Pages
 import Home from './pages/public/Home';
@@ -33,17 +34,40 @@ function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <ImageModalProvider>
+          <BrowserRouter>
           <Toaster
             position="top-right"
             toastOptions={{
+              duration: 3500,
               style: {
                 background: '#ffffff',
-                color: '#F5F5F0',
-                border: '1px solid rgba(101,163,13,0.2)',
-                borderRadius: '10px',
+                color: '#0f172a',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05)',
               },
-              success: { iconTheme: { primary: '#C9A84C', secondary: '#1C1C2E' } },
+              success: {
+                iconTheme: {
+                  primary: '#16a34a',
+                  secondary: '#ffffff',
+                },
+                style: {
+                  border: '1px solid rgba(22, 163, 74, 0.25)',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#ffffff',
+                },
+                style: {
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                },
+              },
             }}
           />
           <Routes>
@@ -75,6 +99,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </ImageModalProvider>
       </AuthProvider>
     </HelmetProvider>
   );

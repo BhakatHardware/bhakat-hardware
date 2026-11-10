@@ -4,11 +4,14 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Package, DollarSign } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const CATEGORIES = ['General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
 
 export default function AddProduct() {
+  const { openImage } = useImageModal();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -127,7 +130,28 @@ export default function AddProduct() {
                 {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)', fontWeight: 600 }}>Uploading...</span>}
               </div>
               {form.imageUrl && (
-                <img src={form.imageUrl} alt="Preview" style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                <div style={{ display: 'inline-block', position: 'relative' }}>
+                  <img
+                    src={getImageUrl(form.imageUrl)}
+                    alt="Preview"
+                    onError={handleImageError}
+                    onClick={() => openImage(getImageUrl(form.imageUrl), form.name || 'New Product Image Preview')}
+                    title="Click to view full image"
+                    style={{
+                      height: 80,
+                      borderRadius: 8,
+                      objectFit: 'cover',
+                      cursor: 'zoom-in',
+                      border: '1px solid var(--color-border)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+                    onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  />
+                  <div style={{ fontSize: '0.7rem', color: 'var(--color-ash)', marginTop: 4 }}>
+                    Click preview to enlarge
+                  </div>
+                </div>
               )}
             </div>
           </div>

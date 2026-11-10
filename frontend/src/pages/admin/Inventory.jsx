@@ -4,12 +4,15 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Search, AlertTriangle, Package, Filter, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const CATEGORIES = ['All', 'General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 export default function Inventory() {
+  const { openImage } = useImageModal();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -107,7 +110,37 @@ export default function Inventory() {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       {p.imageUrl ? (
-                        <img src={p.imageUrl} alt={p.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover' }} />
+                        <div
+                          style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openImage(getImageUrl(p.imageUrl), p.name, `${p.category || ''} • SKU: ${p.sku || 'N/A'}`);
+                          }}
+                          title="Click to view full image"
+                        >
+                          <img
+                            src={getImageUrl(p.imageUrl)}
+                            alt={p.name}
+                            onError={handleImageError}
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 6,
+                              objectFit: 'cover',
+                              cursor: 'zoom-in',
+                              border: '1px solid var(--color-border)',
+                              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.12)';
+                              e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }}
+                          />
+                        </div>
                       ) : (
                         <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Package size={16} color="var(--color-ash)" />

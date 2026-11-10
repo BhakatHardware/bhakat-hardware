@@ -71,7 +71,7 @@ export default function AdminLayout() {
           </div>
           {sidebarOpen && (
             <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--color-dark)' }}>BHAKAT HW</div>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--color-dark)' }}>BHAKAT HARDWARE</div>
               <div style={{ fontSize: '0.65rem', color: 'var(--color-lime-dark)', letterSpacing: '0.1em' }}>ADMIN PANEL</div>
             </div>
           )}
@@ -152,13 +152,15 @@ export default function AdminLayout() {
               <span>Cloud Sync</span>
             </Link>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-dark)' }}>{admin?.name || 'Admin'}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-ash)' }}>Owner</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-dark)' }}>
+                {admin?.name && admin.name.toLowerCase() !== 'admin' ? admin.name : 'Bhakat Hardware'}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--color-ash)', fontWeight: 500 }}>Owner</div>
             </div>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-lime-dark), var(--color-lime))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem', color: 'var(--color-dark)' }}>
-              {admin?.name?.charAt(0) || 'A'}
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-lime-dark), var(--color-lime))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem', color: 'var(--color-dark)', boxShadow: '0 2px 8px rgba(101,163,13,0.25)' }}>
+              BH
             </div>
           </div>
         </header>

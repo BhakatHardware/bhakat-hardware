@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, Save, X, Layers } from 'lucide-react';
+import { getImageUrl, handleImageError } from '../../utils/imageHelper';
+import { useImageModal } from '../../context/ImageModalContext';
 
 const TAGS = ['', 'Exclusive', 'Premium', 'Local', 'Imported'];
 const EMPTY = { name: '', category: '', brand: '', description: '', imageUrl: '', tag: '', isPublished: true, isFeatured: false };
 
 export default function ManageMaterials() {
+  const { openImage } = useImageModal();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -119,7 +122,25 @@ export default function ManageMaterials() {
                     {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)', fontWeight: 600 }}>Uploading...</span>}
                   </div>
                   {form.imageUrl && (
-                    <img src={form.imageUrl} alt="Preview" style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                    <div style={{ display: 'inline-block' }}>
+                      <img
+                        src={getImageUrl(form.imageUrl)}
+                        alt="Preview"
+                        onError={handleImageError}
+                        onClick={() => openImage(getImageUrl(form.imageUrl), form.name || 'Material Image Preview')}
+                        title="Click to view full image"
+                        style={{
+                          height: 80,
+                          borderRadius: 8,
+                          objectFit: 'cover',
+                          cursor: 'zoom-in',
+                          border: '1px solid var(--color-border)',
+                          transition: 'transform 0.15s ease',
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+                        onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      />
+                    </div>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -168,7 +189,32 @@ export default function ManageMaterials() {
             )}
             {!loading && materials.map(m => (
               <tr key={m._id} style={{ opacity: m.isPublished ? 1 : 0.5 }}>
-                <td style={{ fontWeight: 600 }}>{m.name}</td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {m.imageUrl && (
+                      <img
+                        src={getImageUrl(m.imageUrl)}
+                        alt={m.name}
+                        onError={handleImageError}
+                        onClick={() => openImage(getImageUrl(m.imageUrl), m.name, `${m.category || ''} • ${m.brand || ''}`)}
+                        title="Click to view full image"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 6,
+                          objectFit: 'cover',
+                          cursor: 'zoom-in',
+                          border: '1px solid var(--color-border)',
+                          flexShrink: 0,
+                          transition: 'transform 0.15s ease',
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
+                        onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      />
+                    )}
+                    <span style={{ fontWeight: 600 }}>{m.name}</span>
+                  </div>
+                </td>
                 <td><span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>{m.category}</span></td>
                 <td style={{ fontSize: '0.8rem', color: 'var(--color-ash)' }}>{m.brand || '—'}</td>
                 <td>{m.tag ? <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>{m.tag}</span> : <span style={{ color: 'var(--color-ash)', fontSize: '0.8rem' }}>—</span>}</td>
