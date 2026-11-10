@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Package, DollarSign } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../utils/imageHelper';
 import { useImageModal } from '../../context/ImageModalContext';
+import ImageUploadInput from '../../components/common/ImageUploadInput';
 
 const CATEGORIES = ['General Hardware', 'Plumbing', 'Electrical', 'Paint & Related', 'Construction Materials', 'Tools'];
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
@@ -26,28 +27,8 @@ export default function AddProduct() {
     description: '',
     imageUrl: '',
   });
-  const [uploading, setUploading] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setUploading(true);
-    try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      set('imageUrl', res.data.imageUrl);
-      toast.success('Image uploaded!');
-    } catch (err) {
-      toast.error('Image upload failed.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,35 +105,12 @@ export default function AddProduct() {
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
-              <label className="input-label">Product Image</label>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-                <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{ fontSize: '0.875rem' }} />
-                {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)', fontWeight: 600 }}>Uploading...</span>}
-              </div>
-              {form.imageUrl && (
-                <div style={{ display: 'inline-block', position: 'relative' }}>
-                  <img
-                    src={getImageUrl(form.imageUrl)}
-                    alt="Preview"
-                    onError={handleImageError}
-                    onClick={() => openImage(getImageUrl(form.imageUrl), form.name || 'New Product Image Preview')}
-                    title="Click to view full image"
-                    style={{
-                      height: 80,
-                      borderRadius: 8,
-                      objectFit: 'cover',
-                      cursor: 'zoom-in',
-                      border: '1px solid var(--color-border)',
-                      transition: 'transform 0.15s ease',
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-                    onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                  />
-                  <div style={{ fontSize: '0.7rem', color: 'var(--color-ash)', marginTop: 4 }}>
-                    Click preview to enlarge
-                  </div>
-                </div>
-              )}
+              <ImageUploadInput
+                value={form.imageUrl}
+                onChange={(url) => set('imageUrl', url)}
+                label="Product Image"
+                helperText="Upload to Cloudinary: Tap 'Take Photo' to open camera directly, or choose from gallery."
+              />
             </div>
           </div>
         </motion.div>

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, Save, X, Layers } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../utils/imageHelper';
 import { useImageModal } from '../../context/ImageModalContext';
+import ImageUploadInput from '../../components/common/ImageUploadInput';
 
 const TAGS = ['', 'Exclusive', 'Premium', 'Local', 'Imported'];
 const EMPTY = { name: '', category: '', brand: '', description: '', imageUrl: '', tag: '', isPublished: true, isFeatured: false };
@@ -16,7 +17,6 @@ export default function ManageMaterials() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY);
-  const [uploading, setUploading] = useState(false);
 
   const fetch = async () => {
     try {
@@ -29,25 +29,6 @@ export default function ManageMaterials() {
   useEffect(() => { fetch(); }, []);
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setUploading(true);
-    try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setF('imageUrl', res.data.imageUrl);
-      toast.success('Image uploaded!');
-    } catch (err) {
-      toast.error('Image upload failed.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -116,32 +97,12 @@ export default function ManageMaterials() {
                   <textarea className="input-field" rows={3} value={form.description} onChange={e => setF('description', e.target.value)} style={{ resize: 'vertical' }} />
                 </div>
                 <div style={{ gridColumn: '1/-1' }}>
-                  <label className="input-label">Image (Upload via Cloudinary)</label>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-                    <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{ fontSize: '0.875rem' }} />
-                    {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)', fontWeight: 600 }}>Uploading...</span>}
-                  </div>
-                  {form.imageUrl && (
-                    <div style={{ display: 'inline-block' }}>
-                      <img
-                        src={getImageUrl(form.imageUrl)}
-                        alt="Preview"
-                        onError={handleImageError}
-                        onClick={() => openImage(getImageUrl(form.imageUrl), form.name || 'Material Image Preview')}
-                        title="Click to view full image"
-                        style={{
-                          height: 80,
-                          borderRadius: 8,
-                          objectFit: 'cover',
-                          cursor: 'zoom-in',
-                          border: '1px solid var(--color-border)',
-                          transition: 'transform 0.15s ease',
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-                        onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                      />
-                    </div>
-                  )}
+                  <ImageUploadInput
+                    value={form.imageUrl}
+                    onChange={(url) => setF('imageUrl', url)}
+                    label="Material Image (Cloudinary)"
+                    helperText="Upload to Cloudinary: Tap 'Take Photo' to open camera directly, or choose from gallery."
+                  />
                 </div>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.875rem' }}>

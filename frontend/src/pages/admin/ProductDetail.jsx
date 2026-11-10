@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Plus, Edit2, Save, X, Package, TrendingUp } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../utils/imageHelper';
 import { useImageModal } from '../../context/ImageModalContext';
+import ImageUploadInput from '../../components/common/ImageUploadInput';
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const UNITS = ['pcs', 'kg', 'meter', 'bag', 'bundle', 'liter', 'sqft', 'ton', 'set', 'pair', 'roll', 'box', 'sheet'];
@@ -67,26 +68,6 @@ export default function ProductDetail() {
       fetch();
     } catch {
       toast.error('Failed to update.');
-    }
-  };
-
-  const [uploading, setUploading] = useState(false);
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setUploading(true);
-    try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setEditForm(f => ({ ...f, imageUrl: res.data.imageUrl }));
-      toast.success('Image uploaded!');
-    } catch (err) {
-      toast.error('Image upload failed.');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -209,27 +190,12 @@ export default function ProductDetail() {
               <textarea className="input-field" rows={2} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} style={{ resize: 'vertical' }} />
             </div>
             <div style={{ gridColumn: '1/-1' }}>
-              <label className="input-label">Product Image (Cloudinary)</label>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-                <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{ fontSize: '0.875rem' }} />
-                {uploading && <span style={{ fontSize: '0.8rem', color: 'var(--color-lime-dark)' }}>Uploading...</span>}
-              </div>
-              {editForm.imageUrl && (
-                <img
-                  src={getImageUrl(editForm.imageUrl)}
-                  alt="Preview"
-                  onError={handleImageError}
-                  onClick={() => openImage(getImageUrl(editForm.imageUrl), editForm.name || 'Image Preview')}
-                  title="Click to view full image"
-                  style={{
-                    height: 60,
-                    borderRadius: 6,
-                    objectFit: 'cover',
-                    cursor: 'zoom-in',
-                    border: '1px solid var(--color-border)',
-                  }}
-                />
-              )}
+              <ImageUploadInput
+                value={editForm.imageUrl}
+                onChange={(url) => setEditForm(f => ({ ...f, imageUrl: url }))}
+                label="Product Image (Cloudinary)"
+                helperText="Upload to Cloudinary: Tap 'Take Photo' to open camera directly, or choose from gallery."
+              />
             </div>
           </div>
         </motion.div>
